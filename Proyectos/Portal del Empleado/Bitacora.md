@@ -4,6 +4,16 @@ Registro cronológico de cambios, decisiones técnicas, migraciones y resolucion
 
 ---
 
+## 📌 2026-09-04 (tarde) - Bot de Teams: los mensajes del canal Teams no llegan al servidor
+* **Responsable:** Claude Code (Fable 5.1) + Usuario
+* **Contexto:** el bot sigue sin contestar a "hola" / "ayuda" desde Teams. Se revisó el log del plugin en producción (`ep_debug.log`) y el log de acceso de cPanel (`~/access-logs/portal.camaracaceres.com`).
+* **Evidencia:**
+  * Todas las actividades entrantes de Bot Framework registradas (3 y 4 de septiembre) llevan `channelid: webchat` y User-Agent `BF-DirectLine` (IP 20.43.40.64). Son las pruebas del *Test in Web Chat* del portal de Bot Framework, y esas **sí** se responden con HTTP 200 y tarjeta enviada.
+  * **No existe ni una sola petición con canal `msteams`**, ni en el log PHP ni en el log de acceso del servidor web. Lo escrito en Teams nunca llega al origen.
+  * El manifiesto (`manifest.json`, v1.4.4 en repo / 1.4.5 publicada) apunta al `botId` correcto y las opciones de producción coinciden: `ep_teams_bot_id` = dfcd7250-…, `ep_o365_client_id` = 954318d3-…, tenant a853cfe5-…. El endpoint responde OK a GET.
+  * El código del endpoint (`class-ep-bot-mensajeria.php`) funciona: ya respondió a un "hola" por WebChat el 03-09 a las 11:22 (usuario no reconocido porque WebChat no envía `aadObjectId`, pero la tarjeta se entregó).
+* **Conclusión:** el problema **no está en el plugin**, está antes: o el canal *Microsoft Teams* no está realmente habilitado/sano en el registro del bot, o las peticiones del canal Teams (IPs de Azure, UA `Microsoft-BotFramework/3.1`) se bloquean en Cloudflare antes de llegar al origen. El "check azul" en Teams solo indica que Teams aceptó el mensaje, no que Bot Framework lo entregara al endpoint.
+* **Siguiente paso (usuario):** ver [[Proyectos/Portal del Empleado/Roadmap|Roadmap]], apartado "En Curso".
 ## 📌 2026-09-04 - Diagnóstico Integral del Bot de Teams, Bot Framework y Gemini API
 * **Responsable:** Antigravity AI + Usuario
 * **Contexto:** Incidencia en la mensajería del Bot de Microsoft Teams (mensajes entrantes sin respuesta en el chat de Teams).

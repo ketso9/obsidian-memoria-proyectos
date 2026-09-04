@@ -15,8 +15,6 @@ agentes la respeten.
 | :--- | :--- | :--- | :--- |
 | _(vacío)_ | | | |
 
----
-
 ## Protocolo
 
 **Al empezar** una sesión de trabajo sobre el proyecto, añadir una fila a la tabla con:

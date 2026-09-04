@@ -12,6 +12,8 @@ Estado de desarrollo, tareas prioritarias y backlog de características.
 
 ---
 
+- [ ] **Bot de Teams sin respuesta (2026-09-04):** ninguna actividad del canal `msteams` llega al servidor (solo WebChat). Comprobar, en este orden: (1) en el registro del bot (Azure Bot / dev.botframework.com) → *Channels* → *Microsoft Teams*: que exista, esté habilitado y la pestaña *Issues* no muestre errores de entrega (un `403 Forbidden` ahí apunta a Cloudflare); (2) en Cloudflare → *Security* → *Events*, filtrar por ruta `/wp-json/employee-portal/v1/teams-bot` en las últimas 24 h; si hay bloqueos de IPs de Azure, crear una regla WAF de *Skip* para esa ruta; (3) volver a escribir "hola" y confirmar en `ep_debug.log` una línea `EP Bot IN: POST` con `channelid: msteams`.
+
 ## 📋 Backlog de Funcionalidades
 ### Módulo de Firma Electrónica (`ep-signature`)
 - [ ] Verificación en frontend de firmas de certificados electrónicos cualificados.
