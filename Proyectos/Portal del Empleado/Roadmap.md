@@ -12,6 +12,7 @@ Estado de desarrollo, tareas prioritarias y backlog de características.
 - [x] ~~Bot de Teams sin respuesta: diagnóstico~~ → **causa: Cloudflare descartaba el tráfico del canal Teams** (funciona con Cloudflare pausado, 2026-09-04 11:49).
 - [ ] **Reactivar Cloudflare sin romper el bot:** (1) Seguridad → Bots → desactivar *Bot Fight Mode* (en plan Free no se puede eximir por regla); (2) Reglas → Reglas de configuración: para `portal.camaracaceres.com` y ruta `/wp-json/employee-portal/v1/teams-bot`, desactivar *Browser Integrity Check* y poner *Security Level* en "Essentially off"; (3) reactivar el proxy y escribir "hola" en Teams; confirmar en `ep_debug.log` una línea `EP Bot IN: POST` desde IP de ASN 8075 con UA `Microsoft-SkypeBotApi`. Si sigue fallando, alternativa: dejar `portal.camaracaceres.com` en *DNS only* (nube gris) y mantener el resto de subdominios proxied.
 - [ ] Cloudflare → SSL/TLS: pasar de *Flexible* a *Full (strict)* (el origen sirve HTTPS válido; ahora el proxy habla HTTP con el servidor).
+- [ ] **Bot de Teams, arreglo definitivo:** Cloudflare → SSL/TLS → Edge Certificates → *Minimum TLS Version* pasar de 1.3 a **1.2** (el conector de Teams solo negocia TLS 1.2; con 1.3 mínimo la conexión muere en el handshake sin dejar evento). Verificar después con "hola" en Teams y con `curl --tlsv1.2 --tls-max 1.2 https://portal.camaracaceres.com/` (debe responder 200). Esto sustituye a los pasos de Bot Fight Mode / Configuration Rule, que no eran la causa.
 
 ---
 
