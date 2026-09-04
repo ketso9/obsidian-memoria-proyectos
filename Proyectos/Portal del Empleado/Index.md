@@ -10,10 +10,12 @@
 ## 📌 Navegación Rápida
 * 📓 **Diario de Desarrollo:** [[Proyectos/Portal del Empleado/Bitacora|Bitácora de Sesiones]]
 * 🗺️ **Planificación y Estado:** [[Proyectos/Portal del Empleado/Roadmap|Roadmap y Tareas]]
+* 🚀 **Despliegue y Operativa:** [[Proyectos/Portal del Empleado/Despliegue|Criterios de subida a staging y producción]]
 * 📐 **Arquitectura Técnica:**
   * [[Proyectos/Portal del Empleado/Arquitectura/Arquitectura-PDF-Signature|Módulo de Firma PDF (ep-signature)]]
   * [[Proyectos/Portal del Empleado/Arquitectura/Integracion-Microsoft-Graph|Integración con Microsoft 365 / Graph API]]
   * [[Proyectos/Portal del Empleado/Arquitectura/Estructura-Submodulos|Arquitectura de Submódulos e Interfaz]]
+* 🚦 **Coordinación entre agentes:** [[Proyectos/Portal del Empleado/Sesiones|Sesiones activas]] — consultar **antes de escribir** en el vault
 
 ---
 
@@ -52,3 +54,18 @@ Todos los módulos implementan `interface-ep-app.php` y se registran dinámicame
 2. **Contrato de Submódulos:** Todo nuevo módulo debe colocarse en `plugins/<nombre>` e implementar obligatoriamente `interface-ep-app.php`.
 3. **Manejo de PDFs:** Se debe mantener la compatibilidad del pipeline **FPDI 2.1.7 + TCPDF** en `ep-signature/libs/`.
 4. **Seguridad:** Sanitización estricta, verificación de nonces y comprobación de permisos mediante `class-ep-security.php` y `class-ep-roles.php`.
+
+---
+
+## 4. Agentes y Memoria Compartida
+Este vault es la **única fuente de verdad** de la memoria del proyecto, y lo comparten varios agentes:
+
+* **Gemini / Antigravity** — configurado en `~/.gemini/config/mcp_config.json`; protocolo en `.agent/rules/obsidian_memory.md`.
+* **Claude Code** — configurado en scope `user` (`~/.claude.json`); protocolo en `CLAUDE.md` en la raíz del repositorio.
+
+Ambos leen y escriben los mismos ficheros vía `obsidian-local-rest-api` en `127.0.0.1:27123`.
+Antes de arrancar trabajo relevante, consultar la nota correspondiente; al cerrar un hito,
+registrarlo en la Bitácora y ajustar el Roadmap. La memoria local de cada agente no debe
+duplicar contenido de aquí: como mucho, un puntero a este vault.
+
+**Coordinación.** No hay bloqueo de escritura: dos agentes editando la misma nota a la vez se pisan sin dejar rastro. Para evitarlo existe [[Proyectos/Portal del Empleado/Sesiones|Sesiones activas]], donde cada agente declara al empezar qué notas va a tocar y lo retira al terminar. **Hay que leerlo antes de escribir en el vault.** Como norma, preferir escrituras por sección (`vault_append`, `vault_patch`) frente a reescribir la nota entera.

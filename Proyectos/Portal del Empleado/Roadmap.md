@@ -8,6 +8,7 @@ Estado de desarrollo, tareas prioritarias y backlog de características.
 - [x] Establecer conexión MCP con Obsidian y estructurar la memoria técnica.
 - [ ] Validar el pipeline completo de firma PDF con la versión FPDI 2.1.7 (`ep-signature`).
 - [ ] Revisar compatibilidad de endpoints REST y AJAX con la autenticación SSO de Microsoft 365.
+- [ ] Retirar el mu-plugin `club1899-portal-sync.php` en producción y en `devpruebas` (duplica el envío de empresas hacia preproducción). Ver [[Proyectos/Portal del Empleado/Despliegue|Despliegue y Operativa]].
 
 ---
 
