@@ -1,4 +1,4 @@
-# Sesiones Activas — Tablón de Coordinación entre Agentes
+# Sesiones Activas - Tablón de Coordinación entre Agentes
 
 Este vault lo comparten varios agentes (Claude Code y Gemini/Antigravity) **sin ningún
 bloqueo técnico**: si dos escriben la misma nota a la vez, el último pisa al primero
