@@ -1,6 +1,55 @@
 # Bitácora de Sesiones - Portal del Empleado
 
-### 📌 2026-09-04 (13:35) - Despliegue Integral v2.1.2 (Briefing Teams) a Prod/Staging y Limpieza
+## 📌 2026-09-04 (14:20) - Auditoría del Roadmap y corrección de las versiones del stack PDF
+
+**Qué se hizo.** Revisión del `Roadmap.md` contra el código real del repositorio, a petición
+del usuario, que sospechaba que había tareas ya implementadas marcadas como pendientes.
+Tenía razón en varias.
+
+**Tareas que ya estaban hechas y se han marcado:**
+* *Historial de firmas para el empleado*: existe como pestaña "Mis Documentos" en
+  `views/signature-view.php` (tabla `#fds-my-docs-table`, sub-action AJAX `get_my_docs`),
+  con borrado, envío por email y ZIP en lote.
+* *Filtros y búsqueda por departamento en el directorio*: hecho, pero en `ep-directory`,
+  no en `ep-censo` como decía la tarea. `build_department_index()` y
+  `normalize_department_key()` agrupan las variantes de escritura que llegan de M365.
+* Los dos ítems de Cloudflare sobre Bot Fight Mode, Browser Integrity Check y regla WAF
+  de *Skip*: quedaron descartados cuando se vio que la causa era el TLS mínimo.
+
+**Corrección importante de nomenclatura — "FPDI 2.1.7" era un error.** El roadmap,
+`CLAUDE.md` y `Arquitectura-PDF-Signature.md` decían que el pipeline era "FPDI 2.1.7".
+Leyendo el código, son **tres librerías distintas con numeración propia**:
+
+| Ruta | Librería | Versión | Cómo se comprobó |
+| :--- | :--- | :--- | :--- |
+| `libs/fpdi/` | FPDI | **2.6.3** | `src/Fpdi.php`, `const VERSION` |
+| `libs/pdf-mod/` | FPDI PDF-Parser (add-on comercial `setasign/fpdi_pdf-parser`) | **2.1.7** | `composer.json` + commit `9907a4e` |
+| `libs/tcpdf/` | TCPDF | **6.9.4** | fichero `VERSION` y `composer.json` |
+
+El "2.1.7" venía del **PDF-Parser**, no de FPDI. Corregido en los tres sitios.
+
+**Deuda técnica que aparece al desenredarlo:** el `composer.json` del PDF-Parser 2.1.7
+declara `setasign/fpdi: ^2.6.6`, o sea pide una FPDI más nueva de la que hay. Funciona
+porque la comprobación en tiempo de ejecución sólo exige `PdfString::escape` y la 2.6.3
+ofrece todo lo que el parser usa — así se verificó al actualizar el parser (`9907a4e`) —
+pero el desajuste sigue ahí. Añadida al roadmap como tarea propia; requiere revisar
+`EP_Fpdi_V4`, que depende de las interioridades de FPDI.
+
+**Código muerto detectado:** `public/partials/signature-app.php` invoca los shortcodes
+`[firma_documentos]` y `[fds_mis_documentos]`, que **ya no existen** — en todo el
+repositorio sólo hay cuatro `add_shortcode`, y ninguno es `fds_*`. La sección 4 de la nota
+de arquitectura describía esos shortcodes; se ha reescrito con lo que hay de verdad
+(vistas + un único `handle_ajax()` que despacha por `sub_action`).
+
+**Media tarea a un hook de distancia:** `EP_Bot_Mensajeria::notificar_cambio_ticket()` está
+escrita pero **no la llama nadie**: no hay ningún `add_action` que la enganche. Anotado en
+el roadmap.
+
+**Notas del vault modificadas:** `Roadmap.md` y `Arquitectura/Arquitectura-PDF-Signature.md`.
+**Ficheros del repositorio modificados:** `CLAUDE.md` (sección de convenciones, con las
+tres versiones y el aviso de que `deploy.ps1` / `deploy-staging.ps1` excluyen
+`plugins/ep-signature/libs/*`, que se suben con `deploy-fpdi-parser.ps1`).
+## 📌 2026-09-04 (13:35) - Despliegue Integral v2.1.2 (Briefing Teams) a Prod/Staging y Limpieza
 * **Responsable:** Antigravity/Gemini + Usuario.
 * **Contexto:** Se detectaron y desplegaron los 7 ficheros correspondientes a la versión 2.1.2 (briefing matinal a las 8:00, atajos directos sin IA, corrección de franja horaria en saludos y conmutador en ajustes de empleado).
 * **Ficheros desplegados (Producción y Staging):**
@@ -17,8 +66,7 @@
   * Backups previos creados en `~/backups_avisos/bot_2_1_2/{prod,staging}/`.
   * `php -l` con 0 errores de sintaxis en ambos entornos.
   * Hashes MD5 locales, de staging y de producción 100% coincidentes.
-
-### 📌 2026-09-04 (13:10) - Despliegue v2.1.1 (Mejora de agenda en Bot de Teams)
+## 📌 2026-09-04 (13:10) - Despliegue v2.1.1 (Mejora de agenda en Bot de Teams)
 * **Responsable:** Claude Code (desarrollo) + Antigravity/Gemini (despliegue selectivo y verificación) + Usuario.
 * **Contexto:** Claude Code implementó la versión 2.1.1 para depurar la visualización de citas en las tarjetas de Teams (mostrando la agenda de hoy y evitando solapar eventos de días posteriores). El despliegue automático quedó bloqueado por las directivas de seguridad/permisos de Claude Code para ejecutar SCP hacia servidores remotos.
 * **Ficheros desplegados a producción:**
@@ -34,7 +82,6 @@
 Registro cronológico de cambios, decisiones técnicas, migraciones y resoluciones de incidencias en el proyecto.
 
 ---
-
 ## 📌 2026-09-04 (tarde) - Bot de Teams: pulido y productividad (v2.1.1 → v2.1.2)
 * **Responsable:** Claude Code (Fable 5.1) + Usuario (despliegue vía Gemini/Antigravity)
 * **v2.1.1 (desplegada y verificada por el usuario):** el resumen al saludar mostraba la "próxima cita" aunque fuera de otro día. Ahora `EP_Graph_Service::get_today_events()` consulta solo lo que queda de hoy (hora de Madrid, sin eventos de día completo, caché 5 min) y las tarjetas de bienvenida y resumen muestran "📅 Hoy (N): 10:00 Asunto (+2 más)" o "Sin más reuniones". Botón "📅 Próxima cita" en ambas tarjetas.
@@ -46,6 +93,8 @@ Registro cronológico de cambios, decisiones técnicas, migraciones y resolucion
   * `EP_Bot_Mensajeria` expone `instance()`, `tarjeta_briefing()` y `enviar_tarjeta_a_usuario()`; `enviar_respuesta()` devuelve bool.
 * **Ficheros a desplegar (v2.1.2):** `employee-portal.php`, `includes/class-ep-bot-mensajeria.php`, `includes/class-ep-graph-service.php`, `includes/class-ep-bot-briefing.php` (nuevo), `includes/class-ep-loader.php`, `includes/apps/class-ep-app-settings.php`, `public/partials/settings-app.php`.
 * **Prueba del briefing sin esperar a mañana:** `wp eval '(new EP_Bot_Briefing())->enviar_a_todos(date("Y-m-d"));'` desde la raíz de WordPress, con el interruptor activado en Ajustes del usuario de prueba.
+
+* **v2.1.2 desplegada (13:40, vía Gemini) y verificada por Claude Code:** md5 de los 7 ficheros idénticos a local, `php -l` limpio, versión 2.1.2 en producción, cron `ep_bot_briefing_check` programado (cada 15 min), y un POST al endpoint sin token responde **401** (endurecimiento activo). Primer briefing real: próximo día laborable a las 8:00.
 ## 📌 2026-09-04 (tarde) - Bot de Teams: los mensajes del canal Teams no llegan al servidor
 * **Responsable:** Claude Code (Fable 5.1) + Usuario
 * **Contexto:** el bot sigue sin contestar a "hola" / "ayuda" desde Teams. Se revisó el log del plugin en producción (`ep_debug.log`) y el log de acceso de cPanel (`~/access-logs/portal.camaracaceres.com`).
@@ -114,7 +163,22 @@ esources.
 ---
 
 ## 📌 Hitos Previos (Histórico del Repositorio)
-* **Rama activa:** ctualizacion/fpdi-pdf-parser-2.1.7
-* **Actualización del parser PDF:**
-  * Actualización de la librería FPDI a la versión 2.1.7 compatible con versiones recientes de PDF y PHP 8.x.
-  * Pruebas de compatibilidad en el pipeline de firma digital y estampado de códigos QR / CSV.
+* **Rama activa:** `actualizacion/fpdi-pdf-parser-2.1.7`
+* **Actualización del parser PDF** (commit `9907a4e`, 2026-08-13):
+  * Actualización del **FPDI PDF-Parser** (`libs/pdf-mod/`, add-on comercial de setasign) de
+    **2.1.6 a 2.1.7**. ⚠️ *Corregido el 2026-09-04: aquí ponía "la librería FPDI a la versión
+    2.1.7", y no es así — FPDI es otra librería y está en la 2.6.3.*
+  * Motivo real de la actualización: la 2.1.6 aceptaba sin validar los parámetros que vienen
+    dentro del propio PDF, y el portal parsea ficheros que suben los empleados. Se corrigieron
+    `Predictor` (`/Colors` y `/Columns` sin validar → `array_fill` agotaba la memoria del
+    worker), `CompressedReader` (`/N` y `/W` sin comprobar), `SecHandler` (`/Length 0` →
+    división por cero) y `SaslPrep` (un `|` literal dentro de una clase de caracteres borraba
+    la barra vertical de las contraseñas, así que un PDF AES-256 con ese carácter en la clave
+    no se podía abrir).
+  * En el plugin: se retiró el fallback que cargaba el autoloader del parser desde
+    `wp-content/uploads` (directorio escribible: cargar PHP desde ahí convierte cualquier
+    subida en ejecución de código), y se añadió un tope de 25 MB antes de entregar el PDF al
+    parser (`ep_signature_max_pdf_bytes`).
+  * Probado con 40 PDF reales, 25 de ellos con xref comprimido: 40 correctos, 0 fallos.
+  * Se añadió `deploy-fpdi-parser.ps1` porque `deploy.ps1` y `deploy-staging.ps1` excluyen
+    `plugins/ep-signature/libs/*`: estas librerías no viajan en el despliegue normal.
