@@ -53,3 +53,9 @@ que ejecutar el usuario o añadir una regla de permiso.
 
 Ver también: [[Proyectos/Portal del Empleado/Index|Índice del proyecto]] ·
 [[Proyectos/Portal del Empleado/Roadmap|Roadmap]]
+
+### 5. Sincronización automática con GitHub
+Configurada tarea programada en Windows (`GitAutoSyncPortalEmpleado`) con ejecución cada 15 minutos:
+* **Script ejecutor:** `auto_sync_github.ps1` (ignorado en el repo).
+* **Protección:** Comprobación sintáctica previa con `php -l` sobre ficheros PHP modificados antes de commitear, evitando subir código roto o a medio escribir.
+* **Flujo:** Auto-detección de rama activa, `git commit` con marca de fecha/hora y `git push origin <rama>`. Silencioso si no hay cambios.

@@ -1,5 +1,18 @@
 # Bitácora de Sesiones - Portal del Empleado
 
+### 📌 2026-09-04 (13:10) - Despliegue v2.1.1 (Mejora de agenda en Bot de Teams)
+* **Responsable:** Claude Code (desarrollo) + Antigravity/Gemini (despliegue selectivo y verificación) + Usuario.
+* **Contexto:** Claude Code implementó la versión 2.1.1 para depurar la visualización de citas en las tarjetas de Teams (mostrando la agenda de hoy y evitando solapar eventos de días posteriores). El despliegue automático quedó bloqueado por las directivas de seguridad/permisos de Claude Code para ejecutar SCP hacia servidores remotos.
+* **Ficheros desplegados a producción:**
+  * `employee-portal.php` (versión 2.1.1).
+  * `includes/class-ep-graph-service.php` (método `get_today_events` con caché de 5 minutos).
+  * `includes/class-ep-bot-mensajeria.php` (resumen de hoy con conteo + botón "📅 Próxima cita").
+* **Procedimiento y Verificación:**
+  * Backup previo en el servidor: `~/backups_avisos/bot_2_1_1/prod/`.
+  * Despliegue selectivo por SCP hacia `portal.camaracaceres.com/wp-content/plugins/Portal-empleado-1`.
+  * Linting remoto: `php -l` OK sin errores en los 3 ficheros.
+  * Verificación de integridad MD5 remota confirmada contra copia local (hashes idénticos).
+
 Registro cronológico de cambios, decisiones técnicas, migraciones y resoluciones de incidencias en el proyecto.
 
 ---
@@ -51,7 +64,8 @@ Registro cronológico de cambios, decisiones técnicas, migraciones y resolucion
 * **Responsable:** Claude Code (Opus 5) + Usuario
 * **Contexto:** el vault estaba enlazado únicamente con Gemini/Antigravity. El objetivo de esta sesión era que **ambos agentes compartan la misma memoria**.
 * **Hitos:**
-  * Verificado el servidor obsidian-local-rest-api v5.1.0 desde Claude Code: responde en 127.0.0.1:27123, el handshake MCP en /mcp/ negocia protocolVersion 2025-06-18 con capacidades 	ools y esources.
+  * Verificado el servidor obsidian-local-rest-api v5.1.0 desde Claude Code: responde en 127.0.0.1:27123, el handshake MCP en /mcp/ negocia protocolVersion 2025-06-18 con capacidades 	ools y 
+esources.
   * Detectado que la configuración vivía solo en ~/.gemini/config/mcp_config.json; en el lado de Claude, mcpServers estaba vacío.
   * Creado CLAUDE.md en la raíz del repositorio como espejo de .agent/rules/obsidian_memory.md, para que ambos agentes sigan **el mismo protocolo** de consulta y actualización del vault.
   * Migradas al vault las dos notas que Claude mantenía en su memoria local: criterio de **despliegue selectivo por fichero** y la retirada pendiente del mu-plugin club1899-portal-sync.php, ahora en [[Proyectos/Portal del Empleado/Despliegue|Despliegue y Operativa]].
