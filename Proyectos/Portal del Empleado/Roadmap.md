@@ -21,6 +21,17 @@ Estado de desarrollo, tareas prioritarias y backlog de características.
 - [ ] **Bot de Teams sin respuesta (2026-09-04):** ninguna actividad del canal `msteams` llega al servidor (solo WebChat). Comprobar, en este orden: (1) en el registro del bot (Azure Bot / dev.botframework.com) → *Channels* → *Microsoft Teams*: que exista, esté habilitado y la pestaña *Issues* no muestre errores de entrega (un `403 Forbidden` ahí apunta a Cloudflare); (2) en Cloudflare → *Security* → *Events*, filtrar por ruta `/wp-json/employee-portal/v1/teams-bot` en las últimas 24 h; si hay bloqueos de IPs de Azure, crear una regla WAF de *Skip* para esa ruta; (3) volver a escribir "hola" y confirmar en `ep_debug.log` una línea `EP Bot IN: POST` con `channelid: msteams`.
 
 ## 📋 Backlog de Funcionalidades
+##### Bot de Teams (`class-ep-bot-mensajeria.php`, `class-ep-bot-briefing.php`)
+- [x] Resumen del saludo muestra la agenda de **hoy**, no la próxima cita de otro día; botón "📅 Próxima cita" (v2.1.1, desplegada 2026-09-04).
+- [x] Endpoint endurecido: se exige JWT de Bot Framework en REST, AJAX y endpoint nativo `?ep_bot=1`; ya no se tolera la ausencia de cabecera Authorization (v2.1.2).
+- [x] Saludo "buenos días/tardes" con hora de Madrid en vez de UTC del servidor (v2.1.2).
+- [x] Atajos sin IA: "mis tareas", "notificaciones", "resumen", "firmas", "tickets", "inventario", "agenda"/"hoy"/"mañana", "próxima cita" y los botones de las tarjetas se resuelven por coincidencia directa, sin llamar a Gemini (v2.1.2).
+- [x] Briefing matinal proactivo a las **8:00** (L-V), opt-in en Ajustes → Notificaciones. Se omite si el usuario tiene respuestas automáticas de Outlook activas o un evento de día completo tipo vacaciones/baja/permiso en su calendario (v2.1.2). Pendiente de desplegar y verificar el primer envío real.
+- [ ] Botones que actúan: "Firmar ahora" (deep link al documento), "Marcar tarea hecha" en To-Do, "Cerrar ticket" / "Responder" desde la tarjeta (`invoke` ya llega; falta el manejador por acción).
+- [ ] Más notificaciones proactivas: aviso interno nuevo, ticket asignado, firma completada por la otra parte, recordatorio 15 min antes de una reunión con sala.
+- [ ] Seguimiento conversacional: extender `EP_Bot_Context` a la agenda para que "¿y mañana?" / "¿y el viernes?" funcionen tras una consulta.
+- [ ] Panel de "no entendí": pantalla de administración sobre `log_uncertain_intent` para convertir frases con baja confianza en conocimiento manual o nuevos atajos.
+
 ### Módulo de Firma Electrónica (`ep-signature`)
 - [ ] Verificación en frontend de firmas de certificados electrónicos cualificados.
 - [ ] Automatización del sellado de tiempo (TSA) en documentos emitidos por la empresa.

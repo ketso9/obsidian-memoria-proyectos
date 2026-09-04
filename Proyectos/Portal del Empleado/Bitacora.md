@@ -1,5 +1,23 @@
 # Bitácora de Sesiones - Portal del Empleado
 
+### 📌 2026-09-04 (13:35) - Despliegue Integral v2.1.2 (Briefing Teams) a Prod/Staging y Limpieza
+* **Responsable:** Antigravity/Gemini + Usuario.
+* **Contexto:** Se detectaron y desplegaron los 7 ficheros correspondientes a la versión 2.1.2 (briefing matinal a las 8:00, atajos directos sin IA, corrección de franja horaria en saludos y conmutador en ajustes de empleado).
+* **Ficheros desplegados (Producción y Staging):**
+  * `employee-portal.php` (versión 2.1.2).
+  * `includes/class-ep-bot-briefing.php` (nuevo módulo cron matinal).
+  * `includes/class-ep-bot-mensajeria.php` (atajos de respuesta directa y saludo en hora Madrid).
+  * `includes/class-ep-graph-service.php` (soporte para eventos de día completo en agenda de hoy).
+  * `includes/class-ep-loader.php` (inicialización de briefing matinal).
+  * `includes/apps/class-ep-app-settings.php` (registro de la preferencia de usuario).
+  * `public/partials/settings-app.php` (conmutador frontend para el empleado).
+* **Limpieza operativa de servidores:**
+  * Retirado `wp-content/mu-plugins/club1899-portal-sync.php` (renombrado a `.retirado`) en Producción y Staging, eliminando la duplicidad de tráfico residual hacia preproducción.
+* **Verificación:**
+  * Backups previos creados en `~/backups_avisos/bot_2_1_2/{prod,staging}/`.
+  * `php -l` con 0 errores de sintaxis en ambos entornos.
+  * Hashes MD5 locales, de staging y de producción 100% coincidentes.
+
 ### 📌 2026-09-04 (13:10) - Despliegue v2.1.1 (Mejora de agenda en Bot de Teams)
 * **Responsable:** Claude Code (desarrollo) + Antigravity/Gemini (despliegue selectivo y verificación) + Usuario.
 * **Contexto:** Claude Code implementó la versión 2.1.1 para depurar la visualización de citas en las tarjetas de Teams (mostrando la agenda de hoy y evitando solapar eventos de días posteriores). El despliegue automático quedó bloqueado por las directivas de seguridad/permisos de Claude Code para ejecutar SCP hacia servidores remotos.
@@ -17,6 +35,17 @@ Registro cronológico de cambios, decisiones técnicas, migraciones y resolucion
 
 ---
 
+## 📌 2026-09-04 (tarde) - Bot de Teams: pulido y productividad (v2.1.1 → v2.1.2)
+* **Responsable:** Claude Code (Fable 5.1) + Usuario (despliegue vía Gemini/Antigravity)
+* **v2.1.1 (desplegada y verificada por el usuario):** el resumen al saludar mostraba la "próxima cita" aunque fuera de otro día. Ahora `EP_Graph_Service::get_today_events()` consulta solo lo que queda de hoy (hora de Madrid, sin eventos de día completo, caché 5 min) y las tarjetas de bienvenida y resumen muestran "📅 Hoy (N): 10:00 Asunto (+2 más)" o "Sin más reuniones". Botón "📅 Próxima cita" en ambas tarjetas.
+* **v2.1.2 (pendiente de despliegue):**
+  * **Seguridad:** REST, AJAX y endpoint nativo `?ep_bot=1` exigen JWT válido de Bot Framework (`peticion_autenticada()`); se retira la tolerancia a peticiones sin Authorization (el log demuestra que la cabecera llega siempre).
+  * **Saludo** con hora de Madrid (antes UTC del servidor).
+  * **Atajos sin IA** (`atajo_directo()`): frases fijas ≤ 40 caracteres, normalizadas sin tildes, resueltas sin llamar a Gemini. Las apps se invocan por el mismo filtro `ep_bot_handle_intent_*` que usa la IA (`ejecutar_intent_app()`), con comprobación de permisos. Nueva `tarjeta_proxima_cita()` con el día explícito.
+  * **Briefing matinal** (`includes/class-ep-bot-briefing.php`, nuevo): cron cada 15 min que envía a las 8:00 (ventana 8-11, L-V, hora de Madrid, una vez al día vía opción `ep_bot_briefing_last_date`). Opt-in por usuario (`user_meta ep_bot_briefing`, interruptor en Ajustes → Notificaciones, solo si el canal Teams está contratado). Se omite al usuario si `EP_OOF_Sync` dice que está fuera o si hoy tiene un evento de día completo con palabras tipo vacaciones/baja/permiso/libre/festivo. Requiere que el usuario haya escrito antes al bot (usa `ep_bot_conversation_id`).
+  * `EP_Bot_Mensajeria` expone `instance()`, `tarjeta_briefing()` y `enviar_tarjeta_a_usuario()`; `enviar_respuesta()` devuelve bool.
+* **Ficheros a desplegar (v2.1.2):** `employee-portal.php`, `includes/class-ep-bot-mensajeria.php`, `includes/class-ep-graph-service.php`, `includes/class-ep-bot-briefing.php` (nuevo), `includes/class-ep-loader.php`, `includes/apps/class-ep-app-settings.php`, `public/partials/settings-app.php`.
+* **Prueba del briefing sin esperar a mañana:** `wp eval '(new EP_Bot_Briefing())->enviar_a_todos(date("Y-m-d"));'` desde la raíz de WordPress, con el interruptor activado en Ajustes del usuario de prueba.
 ## 📌 2026-09-04 (tarde) - Bot de Teams: los mensajes del canal Teams no llegan al servidor
 * **Responsable:** Claude Code (Fable 5.1) + Usuario
 * **Contexto:** el bot sigue sin contestar a "hola" / "ayuda" desde Teams. Se revisó el log del plugin en producción (`ep_debug.log`) y el log de acceso de cPanel (`~/access-logs/portal.camaracaceres.com`).

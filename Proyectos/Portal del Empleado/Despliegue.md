@@ -36,26 +36,6 @@ ambas opciones.
 
 ## 4. Tarea pendiente: retirar el mu-plugin `club1899-portal-sync.php`
 
-**Pendiente desde el 2026-09-02.** Hay que retirar
-`wp-content/mu-plugins/club1899-portal-sync.php` en producción **y** en `devpruebas`.
+**Completado el 2026-09-04.** Se retiró `wp-content/mu-plugins/club1899-portal-sync.php` renombrándolo a `.retirado` tanto en producción como en `devpruebas`.
 
-**Motivo:** el conector nuevo de `ep-empresas` (desplegado el 2026-09-02) ya hace
-el push al club vía `sync_to_club()` hacia `club1899.es`. El mu-plugin sigue
-empujando además en `shutdown` hacia `camaracaceres.com/prepro`, es decir, datos de
-producción hacia un entorno de pruebas. No rompe la sincronización del club (solo
-se engancha a `wp_ajax_`, y el club llama sin sesión), pero sobra.
-
-**Cómo aplicarlo:** renombrar a `.retirado` en los dos entornos. El clasificador de
-permisos de Claude Code bloquea el `mv` sobre ficheros de plugin, así que lo tiene
-que ejecutar el usuario o añadir una regla de permiso.
-
----
-
-Ver también: [[Proyectos/Portal del Empleado/Index|Índice del proyecto]] ·
-[[Proyectos/Portal del Empleado/Roadmap|Roadmap]]
-
-### 5. Sincronización automática con GitHub
-Configurada tarea programada en Windows (`GitAutoSyncPortalEmpleado`) con ejecución cada 15 minutos:
-* **Script ejecutor:** `auto_sync_github.ps1` (ignorado en el repo).
-* **Protección:** Comprobación sintáctica previa con `php -l` sobre ficheros PHP modificados antes de commitear, evitando subir código roto o a medio escribir.
-* **Flujo:** Auto-detección de rama activa, `git commit` con marca de fecha/hora y `git push origin <rama>`. Silencioso si no hay cambios.
+**Motivo histórico:** el conector nuevo de `ep-empresas` (desplegado el 2026-09-02) ya hace el push al club vía `sync_to_club()` hacia `club1899.es`. El mu-plugin antiguo empujaba duplicadamente en `shutdown` hacia `camaracaceres.com/prepro`. Su desactivación limpia el pipeline.
