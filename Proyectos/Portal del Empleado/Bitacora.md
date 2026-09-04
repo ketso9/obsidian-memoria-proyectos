@@ -14,6 +14,11 @@ Registro cronológico de cambios, decisiones técnicas, migraciones y resolucion
   * El código del endpoint (`class-ep-bot-mensajeria.php`) funciona: ya respondió a un "hola" por WebChat el 03-09 a las 11:22 (usuario no reconocido porque WebChat no envía `aadObjectId`, pero la tarjeta se entregó).
 * **Conclusión:** el problema **no está en el plugin**, está antes: o el canal *Microsoft Teams* no está realmente habilitado/sano en el registro del bot, o las peticiones del canal Teams (IPs de Azure, UA `Microsoft-BotFramework/3.1`) se bloquean en Cloudflare antes de llegar al origen. El "check azul" en Teams solo indica que Teams aceptó el mensaje, no que Bot Framework lo entregara al endpoint.
 * **Siguiente paso (usuario):** ver [[Proyectos/Portal del Empleado/Roadmap|Roadmap]], apartado "En Curso".
+
+* **Resolución (11:49):** el usuario **pausó Cloudflare** en la zona y el bot respondió al "hola" desde Teams. En `ep_debug.log` entró por fin una actividad `message` con canal `msteams`, desde la IP 52.123.136.131 (ASN 8075 Microsoft) y User-Agent `Microsoft-SkypeBotApi (Microsoft-BotFramework/3.0)`; usuario reconocido (Jorge Polo Cortés) y respuesta entregada con HTTP 201 en `smba.trafficmanager.net/emea/{tenant}`. **El plugin y el registro del bot están bien.**
+* **Causa confirmada:** Cloudflare descartaba las peticiones del canal Teams **sin dejar evento** en Seguridad → Eventos (la regla personalizada "Autorizar Bot Microsoft", de tipo *Omitir*, solo exime de WAF/reglas administradas; no exime del *Bot Fight Mode* ni del *Browser Integrity Check* en el plan Free). El tráfico del *Test in Web Chat* (IP 20.43.40.64) sí pasaba, por eso engañaba.
+* **Detalle colateral:** con Cloudflare activo las peticiones llegan al origen por HTTP (aparecen en `access-logs/portal.camaracaceres.com`, no en el `-ssl_log`), es decir, el modo SSL de Cloudflare está en *Flexible*. Conviene pasarlo a *Full (strict)*, el origen ya tiene certificado válido.
+* **Pendiente:** no dejar Cloudflare pausado. Ver tarea en [[Proyectos/Portal del Empleado/Roadmap|Roadmap]].
 ## 📌 2026-09-04 - Diagnóstico Integral del Bot de Teams, Bot Framework y Gemini API
 * **Responsable:** Antigravity AI + Usuario
 * **Contexto:** Incidencia en la mensajería del Bot de Microsoft Teams (mensajes entrantes sin respuesta en el chat de Teams).

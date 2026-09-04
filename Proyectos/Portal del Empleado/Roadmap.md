@@ -9,6 +9,9 @@ Estado de desarrollo, tareas prioritarias y backlog de características.
 - [ ] Validar el pipeline completo de firma PDF con la versión FPDI 2.1.7 (`ep-signature`).
 - [ ] Revisar compatibilidad de endpoints REST y AJAX con la autenticación SSO de Microsoft 365.
 - [ ] Retirar el mu-plugin `club1899-portal-sync.php` en producción y en `devpruebas` (duplica el envío de empresas hacia preproducción). Ver [[Proyectos/Portal del Empleado/Despliegue|Despliegue y Operativa]].
+- [x] ~~Bot de Teams sin respuesta: diagnóstico~~ → **causa: Cloudflare descartaba el tráfico del canal Teams** (funciona con Cloudflare pausado, 2026-09-04 11:49).
+- [ ] **Reactivar Cloudflare sin romper el bot:** (1) Seguridad → Bots → desactivar *Bot Fight Mode* (en plan Free no se puede eximir por regla); (2) Reglas → Reglas de configuración: para `portal.camaracaceres.com` y ruta `/wp-json/employee-portal/v1/teams-bot`, desactivar *Browser Integrity Check* y poner *Security Level* en "Essentially off"; (3) reactivar el proxy y escribir "hola" en Teams; confirmar en `ep_debug.log` una línea `EP Bot IN: POST` desde IP de ASN 8075 con UA `Microsoft-SkypeBotApi`. Si sigue fallando, alternativa: dejar `portal.camaracaceres.com` en *DNS only* (nube gris) y mantener el resto de subdominios proxied.
+- [ ] Cloudflare → SSL/TLS: pasar de *Flexible* a *Full (strict)* (el origen sirve HTTPS válido; ahora el proxy habla HTTP con el servidor).
 
 ---
 
