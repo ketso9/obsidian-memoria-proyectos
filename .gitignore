@@ -1,0 +1,12 @@
+# Obsidian workspace & cache
+.obsidian/workspace*
+.obsidian/cache/
+.trash/
+
+# Security: do not push private API keys or SSL certificates
+.obsidian/plugins/obsidian-local-rest-api/data.json
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
